@@ -6,7 +6,7 @@
   "icons" : {
   },
   "background": {
-    "service_worker" : "background.js"
+    "service_worker" : "src/background.js"
   },
   "permissions" : [
     "activeTab",
@@ -14,7 +14,7 @@
     "scripting"
   ],
   "action" : {
-    "default_popup" : "popup.html"
+    "default_popup" : "src/popup.html"
   }
 
 }
