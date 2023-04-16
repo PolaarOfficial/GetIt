@@ -25,3 +25,11 @@ const getRandomBark = () => {
     const bark = barks[Math.floor(Math.random() * barks.length)];
     return bark;
 }
+
+const initDrawButton = document.getElementById("drawBox");
+initDrawButton.addEventListener("click", captureSnip);
+
+
+function captureSnip(){
+    alert("capturing Snip");
+}
