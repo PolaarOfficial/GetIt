@@ -1,0 +1,20 @@
+{
+  "name": "GetIT",
+  "version" : "0.0.1",
+  "description" : "A service to help purchase items from images you select",
+  "manifest_version": 3,
+  "icons" : {
+  },
+  "background": {
+    "service_worker" : "background.js"
+  },
+  "permissions" : [
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
+  "action" : {
+    "default_popup" : "popup.html"
+  }
+
+}
