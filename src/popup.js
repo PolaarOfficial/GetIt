@@ -1,35 +1,12 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const dialogBox = document.getElementById('dialog-box');
-    const query = { active: true, currentWindow: true };
+//popup js will handle the initiation of the button click
+// when the user draws a box, the popup js will disappear from active state
+// and content js will handle the processing of the image
 
-    chrome.tabs.query(query, (tabs) => {
-        dialogBox.innerHTML = getBarkedTitle(tabs[0].title);
+document.getElementById('drawBox').addEventListener('click', function() {
+    // Send message to content script
+
+    console.log('here')
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {message: 'Hello from the other side'});
     });
 });
-
-const getBarkedTitle = (tabTitle) => {
-    const barkTitle = `${getRandomBark()} Ahem.. I mean, we are at: ${tabTitle}`
-    return barkTitle;
-}
-
-const barks = [
-    'Barf barf!',
-    'Birf birf!',
-    'Woof woof!',
-    'Arf arf!',
-    'Yip yip!',
-    'Biiiirf!'
-]
-
-const getRandomBark = () => {
-    const bark = barks[Math.floor(Math.random() * barks.length)];
-    return bark;
-}
-
-const initDrawButton = document.getElementById("drawBox");
-initDrawButton.addEventListener("click", captureSnip);
-
-
-function captureSnip(){
-    alert("capturing Snip");
-}
