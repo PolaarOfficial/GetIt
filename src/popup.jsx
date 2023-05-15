@@ -39,7 +39,7 @@ function MyButton(){
                 tab.id,
                 {message: "it is the popup"},
                 function(response){
-                    console.log(response.status);
+                    console.log('hello from popup: ' + response.status);
             });
         })
     }
