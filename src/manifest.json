@@ -1,9 +1,0 @@
-{
-  "manifest_version": 3,
-  "name": "Get It",
-  "version": "1.0",
-  "description": "This extension is a starting point to create a real Chrome extension",
-  "action": {
-    "default_popup": "index.html"
-  }
-}
