@@ -25,23 +25,30 @@ function handleMouseUp(event) {
 
   drawing = false;
   capturing = true;
+
   const coords = {
     x: Math.min(event.pageX, startX),
     y: Math.min(event.pageY, startY),
     width: Math.abs(event.pageX - startX),
     height: Math.abs(event.pageY - startY),
   };
+
+  // Temporarily remove the box before capturing
+  document.body.removeChild(box);
+
   chrome.runtime.sendMessage(
     {
       action: "capture",
       coords: coords,
     },
     function (response) {
-      if (response.result === "captured") {
-        capturing = false;
-        document.body.removeChild(box);
-        box = null;
+      if (response.result !== "captured") {
+        // If the capture wasn't successful for any reason, add the box back to the page
+        document.body.appendChild(box);
       }
+      // In either case, we're no longer capturing
+      capturing = false;
+      box = null;
     }
   );
 }
