@@ -14,6 +14,7 @@ export default defineConfig({
       targets: [
         { src: "src/manifest.json", dest: "dist" },
         { src: "src/background.js", dest: "dist" },
+        { src: "src/content.js", dest: "dist" },
       ],
       hook: "writeBundle", // important
     }),
