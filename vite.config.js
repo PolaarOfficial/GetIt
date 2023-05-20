@@ -1,7 +1,28 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import copy from "rollup-plugin-copy";
+import { defineConfig } from "vite";
+import reactRefresh from "@vitejs/plugin-react-refresh";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
-// https://vitejs.dev/config/
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 export default defineConfig({
-  plugins: [react()],
-})
+  plugins: [
+    reactRefresh(),
+    copy({
+      targets: [
+        { src: "src/manifest.json", dest: "dist" },
+        { src: "src/background.js", dest: "dist" },
+      ],
+      hook: "writeBundle", // important
+    }),
+  ],
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, "index.html"),
+      },
+    },
+  },
+});
