@@ -63,7 +63,7 @@ function handleMouseMove(event) {
   }
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request) => {
   if (request.action === "start") {
     window.addEventListener("mousedown", handleMouseDown);
     window.addEventListener("mouseup", handleMouseUp);

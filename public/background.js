@@ -1,8 +1,12 @@
+// background.js
 let activeTabId;
 
 chrome.browserAction.onClicked.addListener(function (tab) {
   activeTabId = tab.id;
-  chrome.browserAction.setIcon({ path: "active.png", tabId: tab.id });
+  chrome.browserAction.setIcon({
+    path: chrome.runtime.getURL("active.png"),
+    tabId: tab.id,
+  });
   chrome.tabs.sendMessage(tab.id, { action: "start" });
 });
 
@@ -32,16 +36,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         );
         downloadScreenshot(canvas.toDataURL());
         sendResponse({ result: "captured" });
-        // After capturing, stop listening for mouse events and switch back to the inactive icon.
-        chrome.tabs.sendMessage(activeTabId, { action: "stop" });
-        chrome.browserAction.setIcon({
-          path: "inactive.png",
-          tabId: activeTabId,
-        });
       };
       img.src = dataUrl;
     });
   }
+  // After capturing, stop listening for mouse events and switch back to the inactive icon.
+  chrome.tabs.sendMessage(activeTabId, { action: "stop" });
+  chrome.browserAction.setIcon({
+    path: chrome.runtime.getURL("inactive.png"),
+    tabId: activeTabId,
+  });
   return true; // Will respond asynchronously
 });
 
