@@ -1,22 +1,29 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "Get It",
   "version": "1.0.0",
   "description": "Capture and download webpage screenshots.",
-  "permissions": ["tabs", "<all_urls>"],
-  "background": {
-    "scripts": ["background.js"],
-    "persistent": false
-  },
-  "browser_action": {
-    "default_icon": "inactive.png",
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_icon": {
+      "16": "inactive.png"
+    },
     "default_title": "Take screenshot"
   },
-  "web_accessible_resources": ["active.png", "inactive.png"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": ["tabs", "activeTab", "scripting"],
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"]
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
-  ]
+  ],
+  "icons": {
+    "16": "inactive.png",
+    "48": "active.png",
+    "128": "active.png"
+  }
 }
