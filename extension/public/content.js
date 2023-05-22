@@ -1,76 +1,107 @@
-let drawing = false;
-let capturing = false;
-let box, startX, startY;
+let box = null;
+let startX = 0;
+let startY = 0;
+let endX = 0;
+let endY = 0;
+let scrollX = 0;
+let scrollY = 0;
 
-function handleMouseDown(event) {
-  event.preventDefault();
-  if (capturing) return;
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.message === "activate") {
+    // Remove any existing box when activating
+    const existingBox = document.getElementById("screenshotBox");
+    if (existingBox) {
+      document.body.removeChild(existingBox);
+    }
 
-  drawing = true;
-  startX = event.pageX;
-  startY = event.pageY;
+    document.addEventListener("mousedown", mouseDown);
+    document.addEventListener("mouseup", mouseUp);
+    document.addEventListener("mousemove", mouseMove);
+    scrollX = window.scrollX;
+    scrollY = window.scrollY;
+  } else if (request.message === "deactivate") {
+    document.removeEventListener("mousedown", mouseDown);
+    document.removeEventListener("mouseup", mouseUp);
+    document.removeEventListener("mousemove", mouseMove);
+    if (box !== null) {
+      document.body.removeChild(box);
+      box = null;
+    }
+  } else if (request.message === "image") {
+    let img = new Image();
+    img.onload = function () {
+      let canvas = document.createElement("canvas");
+      let ctx = canvas.getContext("2d");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+
+      let data = ctx.getImageData(
+        startX + scrollX,
+        startY + scrollY,
+        endX - startX,
+        endY - startY
+      );
+
+      let newCanvas = document.createElement("canvas");
+      let newCtx = newCanvas.getContext("2d");
+      newCanvas.width = endX - startX;
+      newCanvas.height = endY - startY;
+      newCtx.putImageData(data, 0, 0);
+
+      let url = newCanvas.toDataURL("image/png");
+
+      let link = document.createElement("a");
+      link.href = url;
+      link.download = "screenshot.png";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    img.src = request.image;
+  }
+});
+
+function mouseMove(e) {
+  if (box !== null) {
+    endX = e.pageX;
+    endY = e.pageY;
+
+    box.style.width = `${endX - startX}px`;
+    box.style.height = `${endY - startY}px`;
+  }
+}
+function mouseDown(e) {
+  startX = e.pageX;
+  startY = e.pageY;
+
   box = document.createElement("div");
-  box.style.position = "absolute";
   box.style.border = "2px solid red";
-  box.style.background = "rgba(255,0,0,0.2)";
-  box.style.pointerEvents = "none";
+  box.style.position = "absolute";
+  box.style.zIndex = "99999";
   box.style.left = `${startX}px`;
   box.style.top = `${startY}px`;
+  box.id = "screenshotBox";
+  document.body.style.userSelect = "none";
+
   document.body.appendChild(box);
 }
 
-function handleMouseUp(event) {
-  event.preventDefault();
-  if (capturing || !drawing) return;
+function mouseUp(e) {
+  endX = e.pageX;
+  endY = e.pageY;
 
-  drawing = false;
-  capturing = true;
+  box.style.width = `${endX - startX}px`;
+  box.style.height = `${endY - startY}px`;
 
-  const coords = {
-    x: Math.min(event.pageX, startX),
-    y: Math.min(event.pageY, startY),
-    width: Math.abs(event.pageX - startX),
-    height: Math.abs(event.pageY - startY),
-  };
-
-  // Temporarily remove the box before capturing
-  document.body.removeChild(box);
-
-  chrome.runtime.sendMessage(
-    {
-      action: "capture",
-      coords: coords,
-    },
-    function (response) {
-      if (response.result !== "captured") {
-        // If the capture wasn't successful for any reason, add the box back to the page
-        document.body.appendChild(box);
-      }
-      // In either case, we're no longer capturing
-      capturing = false;
+  setTimeout(function () {
+    if (box !== null) {
+      document.body.removeChild(box);
       box = null;
     }
-  );
-}
 
-function handleMouseMove(event) {
-  event.preventDefault();
-  if (drawing && box) {
-    box.style.width = `${Math.abs(event.pageX - startX)}px`;
-    box.style.height = `${Math.abs(event.pageY - startY)}px`;
-    box.style.left = `${event.pageX < startX ? event.pageX : startX}px`;
-    box.style.top = `${event.pageY < startY ? event.pageY : startY}px`;
-  }
-}
+    document.body.style.userSelect = "";
 
-chrome.runtime.onMessage.addListener((request) => {
-  if (request.action === "start") {
-    window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("mouseup", handleMouseUp);
-    window.addEventListener("mousemove", handleMouseMove);
-  } else if (request.action === "stop") {
-    window.removeEventListener("mousedown", handleMouseDown);
-    window.removeEventListener("mouseup", handleMouseUp);
-    window.removeEventListener("mousemove", handleMouseMove);
-  }
-});
+    chrome.runtime.sendMessage({ message: "capture" });
+  }, 100);
+}
