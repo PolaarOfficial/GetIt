@@ -8,13 +8,21 @@ let scrollY = 0;
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.message === "activate") {
+    // Remove any existing box when activating
+    const existingBox = document.getElementById("screenshotBox");
+    if (existingBox) {
+      document.body.removeChild(existingBox);
+    }
+
     document.addEventListener("mousedown", mouseDown);
     document.addEventListener("mouseup", mouseUp);
+    document.addEventListener("mousemove", mouseMove);
     scrollX = window.scrollX;
     scrollY = window.scrollY;
   } else if (request.message === "deactivate") {
     document.removeEventListener("mousedown", mouseDown);
     document.removeEventListener("mouseup", mouseUp);
+    document.removeEventListener("mousemove", mouseMove);
     if (box !== null) {
       document.body.removeChild(box);
       box = null;
@@ -54,6 +62,15 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   }
 });
 
+function mouseMove(e) {
+  if (box !== null) {
+    endX = e.pageX;
+    endY = e.pageY;
+
+    box.style.width = `${endX - startX}px`;
+    box.style.height = `${endY - startY}px`;
+  }
+}
 function mouseDown(e) {
   startX = e.pageX;
   startY = e.pageY;
@@ -64,8 +81,12 @@ function mouseDown(e) {
   box.style.zIndex = "99999";
   box.style.left = `${startX}px`;
   box.style.top = `${startY}px`;
+  box.id = "screenshotBox";
+  document.body.style.userSelect = "none";
+
   document.body.appendChild(box);
 }
+
 function mouseUp(e) {
   endX = e.pageX;
   endY = e.pageY;
@@ -73,12 +94,13 @@ function mouseUp(e) {
   box.style.width = `${endX - startX}px`;
   box.style.height = `${endY - startY}px`;
 
-  // set a timeout to ensure the box is removed before the screenshot is taken
   setTimeout(function () {
     if (box !== null) {
       document.body.removeChild(box);
       box = null;
     }
+
+    document.body.style.userSelect = "";
 
     chrome.runtime.sendMessage({ message: "capture" });
   }, 100);
