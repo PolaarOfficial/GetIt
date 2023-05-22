@@ -73,12 +73,13 @@ function mouseUp(e) {
   box.style.width = `${endX - startX}px`;
   box.style.height = `${endY - startY}px`;
 
-  chrome.runtime.sendMessage({ message: "capture" }, function (response) {
+  // set a timeout to ensure the box is removed before the screenshot is taken
+  setTimeout(function () {
     if (box !== null) {
       document.body.removeChild(box);
       box = null;
     }
-    // This will make the icon inactive after the screenshot
-    chrome.runtime.sendMessage({ message: "deactivate" });
-  });
+
+    chrome.runtime.sendMessage({ message: "capture" });
+  }, 100);
 }

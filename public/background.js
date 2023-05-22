@@ -21,6 +21,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "capture") {
     chrome.tabs.captureVisibleTab(null, { format: "png" }, function (image) {
       chrome.tabs.sendMessage(tabId, { message: "image", image });
+
+      // move deactivation to here after the screenshot has been taken
+      active = false;
+      chrome.action.setIcon({ path: "inactive.png", tabId: tabId });
+      chrome.tabs.sendMessage(tabId, { message: "deactivate" });
     });
   }
 });
