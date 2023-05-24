@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       newCtx.putImageData(data, 0, 0);
 
       let url = newCanvas.toDataURL("image/png");
-
+      sendResponse({image:url, response:'image file'})
       let link = document.createElement("a");
       link.href = url;
       link.download = "screenshot.png";
@@ -104,4 +104,31 @@ function mouseUp(e) {
 
     chrome.runtime.sendMessage({ message: "capture" });
   }, 100);
+}
+
+function sendBase64ToServer(image){
+  console.log('here')
+  let path = "http://127.0.0.1:5000/digest";
+  const formData = new FormData();
+  formData.append('image', new Blob([image],{type: 'image/jpeg'}));
+  fetch(path, {
+    method:"POST",
+    headers: {"Content-type":"application/json"},
+    body: formData
+  }).then(response => response.json())
+    .then(data => console.log(data))
+    .then(error => console.error(error));
+
+  // var httpPost = new XMLHttpRequest(),
+  // data = JSON.stringify({image: base64});
+  // httpPost.onreadystatechange = function(err){
+  //   if(httpPost.readyState == 4 && httpPost.readyState == 200){
+  //     console.log(httpPost.responseText);
+  //   } else {
+  //     console.log(err);
+  //   }
+  // };
+  // httpPost.setRequestHeader('Content-Type', 'application/json');
+  // httpPost.open("POST", path, true);
+  // httpPost.send(data);
 }
