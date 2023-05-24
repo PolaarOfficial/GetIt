@@ -1,4 +1,4 @@
-let box = null;
+let drawBox = null;
 let startX = 0;
 let startY = 0;
 let endX = 0;
@@ -23,9 +23,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     document.removeEventListener("mousedown", mouseDown);
     document.removeEventListener("mouseup", mouseUp);
     document.removeEventListener("mousemove", mouseMove);
-    if (box !== null) {
-      document.body.removeChild(box);
-      box = null;
+    if (drawBox !== null) {
+      document.body.removeChild(drawBox);
+      drawBox = null;
     }
   } else if (request.message === "image") {
     let img = new Image();
@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       newCtx.putImageData(data, 0, 0);
 
       let url = newCanvas.toDataURL("image/png");
-      sendResponse({image:url, response:'image file'})
+      chrome.runtime.sendMessage({ image:url, message: "image file" });
       let link = document.createElement("a");
       link.href = url;
       link.download = "screenshot.png";
@@ -63,72 +63,45 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 });
 
 function mouseMove(e) {
-  if (box !== null) {
+  if (drawBox !== null) {
     endX = e.pageX;
     endY = e.pageY;
 
-    box.style.width = `${endX - startX}px`;
-    box.style.height = `${endY - startY}px`;
+    drawBox.style.width = `${endX - startX}px`;
+    drawBox.style.height = `${endY - startY}px`;
   }
 }
 function mouseDown(e) {
   startX = e.pageX;
   startY = e.pageY;
 
-  box = document.createElement("div");
-  box.style.border = "2px solid red";
-  box.style.position = "absolute";
-  box.style.zIndex = "99999";
-  box.style.left = `${startX}px`;
-  box.style.top = `${startY}px`;
-  box.id = "screenshotBox";
+  drawBox = document.createElement("div");
+  drawBox.style.border = "2px solid red";
+  drawBox.style.position = "absolute";
+  drawBox.style.zIndex = "99999";
+  drawBox.style.left = `${startX}px`;
+  drawBox.style.top = `${startY}px`;
+  drawBox.id = "screenshotBox";
   document.body.style.userSelect = "none";
 
-  document.body.appendChild(box);
+  document.body.appendChild(drawBox);
 }
 
 function mouseUp(e) {
   endX = e.pageX;
   endY = e.pageY;
 
-  box.style.width = `${endX - startX}px`;
-  box.style.height = `${endY - startY}px`;
+  drawBox.style.width = `${endX - startX}px`;
+  drawBox.style.height = `${endY - startY}px`;
 
   setTimeout(function () {
-    if (box !== null) {
-      document.body.removeChild(box);
-      box = null;
+    if (drawBox !== null) {
+      document.body.removeChild(drawBox);
+      drawBox = null;
     }
 
     document.body.style.userSelect = "";
 
     chrome.runtime.sendMessage({ message: "capture" });
   }, 100);
-}
-
-function sendBase64ToServer(image){
-  console.log('here')
-  let path = "http://127.0.0.1:5000/digest";
-  const formData = new FormData();
-  formData.append('image', new Blob([image],{type: 'image/jpeg'}));
-  fetch(path, {
-    method:"POST",
-    headers: {"Content-type":"application/json"},
-    body: formData
-  }).then(response => response.json())
-    .then(data => console.log(data))
-    .then(error => console.error(error));
-
-  // var httpPost = new XMLHttpRequest(),
-  // data = JSON.stringify({image: base64});
-  // httpPost.onreadystatechange = function(err){
-  //   if(httpPost.readyState == 4 && httpPost.readyState == 200){
-  //     console.log(httpPost.responseText);
-  //   } else {
-  //     console.log(err);
-  //   }
-  // };
-  // httpPost.setRequestHeader('Content-Type', 'application/json');
-  // httpPost.open("POST", path, true);
-  // httpPost.send(data);
 }
