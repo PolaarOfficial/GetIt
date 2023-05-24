@@ -27,4 +27,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       chrome.tabs.sendMessage(tabId, { message: "deactivate" });
     });
   }
+  if(request.message === 'image file'){
+    let path = "http://127.0.0.1:5000/digest";
+    const formData = new FormData();
+    formData.append('imagefile', request.image);
+    fetch(path, {
+      method:"POST",
+      body: formData
+    }).then(response => response.json())
+      .then(data => console.log(data))
+      .then(error => console.error(error));
+  }
 });
