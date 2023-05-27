@@ -1,0 +1,1 @@
+flask --app initserver.py run
